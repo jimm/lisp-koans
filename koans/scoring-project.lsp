@@ -49,9 +49,29 @@
 ;
 ; Your goal is to write the score method.
 
+(defun count-of (num h)
+  (or (gethash num h) 0))
+
 (defun score (dice)
-  ; You need to write this method
-)
+  (let ((h (make-hash-table)))
+    (loop for die in dice
+       do (setf (gethash die h)
+                (let ((val (count-of die h)))
+                  (if val (+ 1 val) 1))))
+    (let ((points 0))
+      ;; A set of three ones is 1000 points
+      (when (>= (count-of 1 h) 3) (setf points (+ points 1000)))
+      ;; A set of three other numbers is worth 100 x number
+      (loop for i from 2 to 6
+         do (when (>= (count-of i h) 3)
+              (setf points (+ points (* i 100)))))
+      ;; A one not part of a set of three is worth 100 points
+      (setf points (+ points (* 100 (mod (count-of 1 h) 3))))
+      ;; A five not part of a set of three is worth 50 points
+      (setf points (+ points (* 50 (mod (count-of 5 h) 3))))
+
+      ;; return points
+      points)))
 
 (define-test test-score-of-an-empty-list-is-zero
     (assert-equal 0 (score nil)))
